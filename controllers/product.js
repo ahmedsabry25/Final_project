@@ -6,7 +6,7 @@ const addProduct = async (req, res) => {
   try {
     const exist = await Productmodel.findOne({ title, brand });
     if (exist) {
-      exist.stock += stock ;
+      exist.stock += stock;
       await exist.save();
       return res.status(200).json({
         message: "Stock updated",
@@ -62,10 +62,10 @@ const updateProduct = async (req, res) => {
       res.status(404).json({ message: "product not found" });
     } else {
       await Productmodel.findByIdAndUpdate({ _id: id }, products);
-      res.status(201).json({ message: "product updated" });
+      res.status(200).json({ message: "product updated" });
     }
   } catch (err) {
-    return res.status(500)("cannot update product");
+    return res.status(500)({ message: "cannot update product" });
   }
 };
 //delete the product by _ID function
