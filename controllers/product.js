@@ -31,7 +31,6 @@ const addProduct = async (req, res) => {
       .json({ message: "Failed to add/update product", error: error.message });
   }
 };
-
 // display ALL products function
 const getAllProducts = async (req, res) => {
   try {
@@ -62,10 +61,10 @@ const updateProduct = async (req, res) => {
       res.status(404).json({ message: "product not found" });
     } else {
       await Productmodel.findByIdAndUpdate({ _id: id }, products);
-      res.status(200).json({ message: "product updated" });
+      res.status(201).json({ message: "product updated" });
     }
   } catch (err) {
-    return res.status(500)({ message: "cannot update product" });
+    return res.status(500)("cannot update product");
   }
 };
 //delete the product by _ID function
