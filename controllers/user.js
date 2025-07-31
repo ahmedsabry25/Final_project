@@ -1,123 +1,170 @@
 const usermodel = require("../models/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-//delete user by _ID function
-const deleteUser = async (req, res) => {
-  var id = req.params.id;
-  try {
-    const User = await usermodel.findOne({ _id: id });
-    if (!User) {
-      return res.status(404).json({ message: "user not found" });
-    } else {
-      await usermodel.deleteOne({ _id: id });
-      res.status(201).json({ message: "user deleted" });
-    }
-  } catch (err) {
-    res.status(500).send({ message: "cannot delete user" });
-  }
-};
-//update username of user by _ID function
-const updateUser = async (req, res) => {
-  var id = req.params.id;
-  var { username } = req.body;
-  if (!username) {
-    return res.status(400).json({ message: "user name is required" });
-  }
-  try {
-    const User = await usermodel.findOne({ _id: id });
-    if (!User) {
-      res.status(404).json({ message: "user not found" });
-    } else {
-      await usermodel.updateOne({ _id: id }, { username: username });
-      res.status(201).json({ message: "user updated" });
-    }
-  } catch (err) {
-    return res.status(500)("cannot update user");
-  }
-};
-//get all user function
-const getAllUser = async (req, res) => {
-  const Allusers = await usermodel.find();
-  res.status(201).json(Allusers);
-};
-//get user by _ID function
-const getUser = async (req, res) => {
-  const id = req.params.id;
-  const User = await usermodel.findOne({ _id: id });
-  if (!User) {
-    return res.status(404).send({ message: "user not found" });
-  } else {
-    res.status(201).json(User);
-  }
-};
 
-//Generate Token
+// Generate Token
 const generateToken = (user) => {
   return jwt.sign(
     {
       id: user._id,
-      name: user.name,
+      name: user.username,
       email: user.email,
-      role: user.role,
+      role: user.role, 
     },
     process.env.SECRET_KEY,
-    {
-      expiresIn: "7d",
-    }
+    { expiresIn: "7d" }
   );
 };
-//register function
+
+
 const register = async (req, res) => {
-  const newUser = req.body;
-  const exist = await usermodel.findOne({ email: newUser.email });
-  if (exist) {
-    return res.status(400).json({ message: "User already exists" });
+  try {
+    const {
+      username,
+      email,
+      password,
+      phonenumber,
+      role,
+      gender,
+      BankAccount,
+      address,
+      age
+    } = req.body;
+
+    // تحقق من وجود المستخدم
+    const exist = await usermodel.findOne({ email });
+    if (exist) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // إنشاء يوزر جديد
+    const newUser = new usermodel({
+      username,
+      email,
+      password,
+      phonenumber,
+      role,
+      gender,
+      BankAccount,
+      address,
+      age,
+    });
+
+   
+    await newUser.save();
+
+    res.status(201).json({ message: "User registered successfully", user: newUser });
+
+  } catch (error) {
+    res.status(500).json({ message: "Registration failed", error: error.message });
   }
-  const User = await usermodel.create(newUser);
-  res.status(201).json({
-    User,
-    token: generateToken(User),
-  });
 };
-//login function
+
+
+// Login function
 const login = async (req, res) => {
   const { email, password } = req.body;
   const User = await usermodel.findOne({ email });
-  if (!User || !(await User.matchPassword(password))) {
-    return res.status(401).json({ message: "invalid email or password" });
+
+  if (!User || !(await bcrypt.compare(password, User.password))) {
+    return res.status(401).json({ message: "Invalid email or password" });
   }
-  res.status(201).json({
-    User,
-    token: generateToken(User),
-  });
+
+  res.status(200).json({ User, token: generateToken(User) });
 };
-//forget password function
+
+// Delete user by ID
+const deleteUser = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const user = await usermodel.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await usermodel.deleteOne({ _id: id });
+    res.status(200).json({ message: "User deleted" });
+  } catch (err) {
+    res.status(500).json({ message: "Cannot delete user", error: err.message });
+  }
+};
+
+// Update username
+const updateUser = async (req, res) => {
+  const id = req.params.id;
+  const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ message: "Username is required" });
+  }
+
+  try {
+    const user = await usermodel.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.username = username;
+    await user.save();
+
+    res.status(200).json({ message: "User updated" });
+  } catch (err) {
+    res.status(500).json({ message: "Cannot update user", error: err.message });
+  }
+};
+
+// Get all users
+const getAllUser = async (req, res) => {
+  const users = await usermodel.find();
+  res.status(200).json(users);
+};
+
+// Get user by ID
+const getUser = async (req, res) => {
+  const id = req.params.id;
+  const user = await usermodel.findById(id);
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  res.status(200).json(user);
+};
+
+// Forget password
 const forgetpassword = async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    return res.status(400).json({ message: "email is required" });
+    return res.status(400).json({ message: "Email is required" });
   }
+
   try {
-    const User = await usermodel.findOne({ email: email });
-    if (!User) {
-      return res.status(404).json({ message: "email not found" });
+    const user = await usermodel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Email not found" });
     }
-    const token = jwt.sign({ id: User._id }, process.env.SECRET_KEY, {
+
+    const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, {
       expiresIn: "10m",
     });
-    User.resetToken = token;
-    User.resetTokenExpire = new (Date.now() + 10 * 60 * 1000)();
-    await User.save();
+
+    user.resetToken = token;
+    user.resetTokenExpire = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
     const link = `http://localhost:${process.env.PORT}/user/reset/${token}`;
     res.status(200).json({ message: link });
+
   } catch (err) {
-    res.status(500).json({ message: "Error password" });
+    res.status(500).json({ message: "Error resetting password", error: err.message });
   }
 };
-//create new password
+
+// Reset password
 const resetpassword = async (req, res) => {
   const { token } = req.params;
   const { newpassword } = req.body;
+
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     const user = await usermodel.findOne({
@@ -125,40 +172,51 @@ const resetpassword = async (req, res) => {
       resetToken: token,
       resetTokenExpire: { $gt: Date.now() },
     });
+
     if (!user) {
-      return res.status(400).json({ message: "end" });
+      return res.status(400).json({ message: "Token expired or invalid" });
     }
-    const salt = bcrypt.genSaltSync(15);
-    var hashpassword = await bcrypt.hash(newpassword, salt);
-    user.password = hashpassword;
+
+    const hashedPassword = await bcrypt.hash(newpassword, 10);
+    user.password = hashedPassword;
     user.resetToken = undefined;
     user.resetTokenExpire = undefined;
+
     await user.save();
-    res.status(200).json({ message: "reset password successfully" });
+
+    res.status(200).json({ message: "Password reset successfully" });
+
   } catch (err) {
-    res.status(400).json({ message: "error", error: err.message });
+    res.status(400).json({ message: "Error", error: err.message });
   }
 };
-//update password function
+
+// Update password
 const updatepassword = async (req, res) => {
   const { email, password, newpassword } = req.body;
+
   if (!email || !password || !newpassword) {
-    res.status(400).json({ message: "this fiealds is requird" });
+    return res.status(400).json({ message: "All fields are required" });
   }
+
   try {
     const user = await usermodel.findOne({ email });
     if (!user) {
-      res.status(404).json({ message: "user not found" });
-    } else {
-      await usermodel.updateOne({ email: email }, { password: newpassword });
-      const salt = bcrypt.genSaltSync(15);
-      var hashpassword = await bcrypt.hash(newpassword, salt);
-      user.password = hashpassword;
-      await user.save();
-      res.status(201).json({ message: "password updated" });
+      return res.status(404).json({ message: "User not found" });
     }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Current password incorrect" });
+    }
+
+    user.password = await bcrypt.hash(newpassword, 10);
+    await user.save();
+
+    res.status(200).json({ message: "Password updated" });
+
   } catch (err) {
-    return res.status(500)("cannot update user");
+    res.status(500).json({ message: "Cannot update password", error: err.message });
   }
 };
 module.exports = {

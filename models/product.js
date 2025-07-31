@@ -11,20 +11,29 @@ const productSchema = mongoose.Schema({
     type: Number,
     required: [true, "Price is required"],
   },
+  Images: {
+    url: { type: String, require: true },
+  },
+  discount: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
   category: {
     id: { type: Number },
-    name: { type: String, required:[ true,"name of category is required"] },
+    name: { type: String, required: [true, "name of category is required"] },
   },
- stock:{
-    type:Number
- },
- brand:{
-    type:String,
-    required:[true,"brand is required"]
- }
+  stock: {
+    type: Number,
+  },
+  brand: {
+    type: String,
+    required: [true, "brand is required"],
+  },
 });
 module.exports = mongoose.model("Product", productSchema);
