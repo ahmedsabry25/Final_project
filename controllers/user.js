@@ -9,7 +9,7 @@ const generateToken = (user) => {
       id: user._id,
       name: user.username,
       email: user.email,
-      role: user.role, 
+      role: user.role,
     },
     process.env.SECRET_KEY,
     { expiresIn: "7d" }
@@ -31,13 +31,12 @@ const register = async (req, res) => {
       age
     } = req.body;
 
-    // تحقق من وجود المستخدم
     const exist = await usermodel.findOne({ email });
     if (exist) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // إنشاء يوزر جديد
+    
     const newUser = new usermodel({
       username,
       email,
@@ -50,15 +49,26 @@ const register = async (req, res) => {
       age,
     });
 
-   
     await newUser.save();
 
-    res.status(201).json({ message: "User registered successfully", user: newUser });
+    const token = generateToken(newUser);
+
+    res.status(201).json({
+      message: "User registered successfully",
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role
+      },
+      token
+    });
 
   } catch (error) {
     res.status(500).json({ message: "Registration failed", error: error.message });
   }
 };
+
 
 
 // Login function

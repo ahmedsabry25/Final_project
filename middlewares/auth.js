@@ -10,18 +10,16 @@ async function auth(req, res, next) {
   }
 
   try {
-   
     const decoded = await promisify(jwt.verify)(
-      authorization, 
+      authorization,
       process.env.SECRET_KEY
     );
 
-    
     req.user = {
-      id: decoded.id,
+      _id: decoded.id,
       role: decoded.role,
       email: decoded.email,
-      name: decoded.name
+      name: decoded.name,
     };
 
     next();

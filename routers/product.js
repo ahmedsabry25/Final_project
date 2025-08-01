@@ -10,9 +10,11 @@ const {
 } = require("../controllers/product");
 
 const { isSeller, isAdmin } = require("../middlewares/roles");
-router.post("/", auth,isSeller, addProduct);
+
+router.post("/", auth, isSeller, addProduct);
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
-router.put("/:id", auth,isSeller,isAdmin, updateProduct);
-router.delete("/:id",auth,isSeller,isAdmin, deleteProduct);
+router.put("/:id", auth, isSeller, updateProduct);
+router.delete("/:id", auth, isSeller, deleteProduct);
+
 module.exports = router;
