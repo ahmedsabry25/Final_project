@@ -38,7 +38,7 @@ const updateUser = async (req, res) => {
 //get all user function
 const getAllUser = async (req, res) => {
   const Allusers = await usermodel.find();
-  res.status(201).json(Allusers);
+  res.status(200).json(Allusers);
 };
 //get user by _ID function
 const getUser = async (req, res) => {
@@ -47,7 +47,7 @@ const getUser = async (req, res) => {
   if (!User) {
     return res.status(404).send({ message: "user not found" });
   } else {
-    res.status(201).json(User);
+    res.status(200).json(User);
   }
 };
 
@@ -86,7 +86,7 @@ const login = async (req, res) => {
   if (!User || !(await User.matchPassword(password))) {
     return res.status(401).json({ message: "invalid email or password" });
   }
-  res.status(201).json({
+  res.status(200).json({
     User,
     token: generateToken(User),
   });
