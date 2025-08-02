@@ -13,4 +13,4 @@ function isSellerOrAdmin(req, res, next) {
   return res.status(403).json({ message: "Access denied. Sellers or Admin only." });
 }
 
-module.exports = { isAdmin, isSeller };
+module.exports = { isAdmin, isSellerOrAdmin };

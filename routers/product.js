@@ -9,7 +9,7 @@ const {
   deleteProduct
 } = require("../controllers/product");
 
-const { isSeller, isAdmin } = require("../middlewares/roles");
+const { isSellerOrAdmin, isAdmin } = require("../middlewares/roles");
 
 router.post("/", auth, isSellerOrAdmin, addProduct);
 router.get("/", getAllProducts);
