@@ -36,7 +36,6 @@ const addProduct = async (req, res) => {
     });
   }
 };
-
 // display ALL products function
 const getAllProducts = async (req, res) => {
   try {
@@ -65,7 +64,14 @@ const updateProduct = async (req, res) => {
     const product = await Productmodel.findById(id);
 
     if (!product) {
+<<<<<<< HEAD
       return res.status(404).json({ message: "Product not found" });
+=======
+      res.status(404).json({ message: "product not found" });
+    } else {
+      await Productmodel.findByIdAndUpdate({ _id: id }, products);
+      res.status(201).json({ message: "product updated" });
+>>>>>>> karim-branch
     }
 
 
@@ -83,11 +89,15 @@ const updateProduct = async (req, res) => {
     return res.status(200).json({ message: "Product updated by seller" });
 
   } catch (err) {
+<<<<<<< HEAD
     console.error("Update error:", err);
     return res.status(500).json({
       message: "Cannot update product",
       error: err.message,
     });
+=======
+    return res.status(500)("cannot update product");
+>>>>>>> karim-branch
   }
 };
 
