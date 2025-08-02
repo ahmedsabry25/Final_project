@@ -2,7 +2,7 @@ const Productmodel = require("../models/product");
 //add new product
 const addProduct = async (req, res) => {
   const { title, brand, stock = 1, description, price, category } = req.body;
-  //plus in the stock
+
   try {
     const exist = await Productmodel.findOne({ title, brand });
     if (exist) {
@@ -20,15 +20,20 @@ const addProduct = async (req, res) => {
         description,
         price,
         category,
+        ownerId: req.user._id
       });
+
       return res.status(201).json({
+        message: "Product added successfully",
         product: newProduct,
       });
     }
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Failed to add/update product", error: error.message });
+    console.error(error);
+    return res.status(500).json({
+      message: "Failed to add/update product",
+      error: error.message,
+    });
   }
 };
 // display ALL products function
@@ -50,39 +55,95 @@ const getProductById = async (req, res) => {
 };
 //update the peoduct by _ID function
 const updateProduct = async (req, res) => {
-  var id = req.params.id;
-  var products = req.body;
-  if (!products) {
-    return res.status(400).json({ message: "product is required" });
-  }
+  const id = req.params.id;
+  const data = req.body;
+  const userId = req.user._id;
+  const userRole = req.user.role;
+
   try {
-    const product = await Productmodel.findById({ _id: id });
+    const product = await Productmodel.findById(id);
+
     if (!product) {
+
       res.status(404).json({ message: "product not found" });
     } else {
       await Productmodel.findByIdAndUpdate({ _id: id }, products);
       res.status(201).json({ message: "product updated" });
+
+      return res.status(404).json({ message: "Product not found" });
     }
+
+
+    if (userRole === "admin") {
+      await Productmodel.findByIdAndUpdate(id, data, { new: true }); //new بيرجع اخر نسخة معدلة يعني بغد التحديث
+      return res.status(200).json({ message: "Product updated by admin" });
+    }
+
+    // السماح للسيلر لو هو صاحب المنتج
+    if (!product.ownerId || product.ownerId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to update this product" });
+
+    }
+
+    await Productmodel.findByIdAndUpdate(id, data, { new: true });
+    return res.status(200).json({ message: "Product updated by seller" });
+
   } catch (err) {
+
     return res.status(500)("cannot update product");
+
+    console.error("Update error:", err);
+    return res.status(500).json({
+      message: "Cannot update product",
+      error: err.message,
+    });
+
   }
 };
+
+
 //delete the product by _ID function
 const deleteProduct = async (req, res) => {
-  var id = req.params.id;
+  const id = req.params.id;
+  const userId = req.user._id;
+  const userRole = req.user.role;
+
   try {
-    const product = await Productmodel.findOne({ _id: id });
+    const product = await Productmodel.findById(id);
+
     if (!product) {
-      return res.status(404).json({ message: "product not found" });
-    } else {
-      product.stock = product.stock - 1;
-      await product.save();
-      res.status(201).json({ message: "product deleted" });
+      return res.status(404).json({ message: "Product not found" });
     }
+
+    if (userRole === "admin") {
+      await Productmodel.findByIdAndDelete(id);
+      return res.status(200).json({ message: "Product deleted by admin" });
+    }
+
+    if (!product.ownerId || product.ownerId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this product" });
+    }
+
+    if (product.stock > 1) {
+      product.stock -= 1;
+      await product.save();
+      return res.status(200).json({ message: "Stock decreased by 1" });
+    } else {
+      await Productmodel.findByIdAndDelete(id);
+      return res.status(200).json({ message: "Product deleted completely by seller" });
+    }
+
   } catch (err) {
-    res.status(500).send({ message: "cannot delete poduct" });
+    console.error("Delete error:", err);
+    return res.status(500).json({
+      message: "Error deleting product",
+      error: err.message,
+    });
   }
 };
+
+
+
 module.exports = {
   addProduct,
   getAllProducts,

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const auth = require('../middlewares/auth'); 
+const auth = require('../middlewares/auth');
 const {
   addProduct,
   getAllProducts,
@@ -8,9 +8,13 @@ const {
   updateProduct,
   deleteProduct
 } = require("../controllers/product");
-router.post("/",auth, addProduct);
-router.get("/",getAllProducts);
+
+const { isSeller, isAdmin } = require("../middlewares/roles");
+
+router.post("/", auth, isSeller, addProduct);
+router.get("/", getAllProducts);
 router.get("/:id", getProductById);
-router.put("/:id",auth, updateProduct);
-router.delete("/:id" ,auth,deleteProduct);
+router.put("/:id", auth, isSeller, updateProduct);
+router.delete("/:id", auth, isSeller, deleteProduct);
+
 module.exports = router;

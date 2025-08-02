@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middlewares/auth");
+const { isAdmin, isSeller } = require("../middlewares/roles");
+
 const {
   deleteUser,
   updateUser,
@@ -12,10 +14,13 @@ const {
   resetpassword,
   updatepassword
 } = require("../controllers/user");
-router.get("/", auth, getAllUser);
-router.get("/:id", auth, getUser);
-router.delete("/:id", auth, deleteUser);
-router.put("/:id", auth, updateUser);
+
+
+router.get("/", auth, isAdmin, getAllUser);
+router.get("/:id", auth, isAdmin, getUser);
+router.delete("/:id", auth, isAdmin, deleteUser);
+router.put("/:id", auth, isAdmin, updateUser);
+
 router.post("/register", register);
 router.post("/login", login);
 router.post("/forget", forgetpassword);
