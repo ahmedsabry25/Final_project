@@ -36,7 +36,6 @@ const addProduct = async (req, res) => {
     });
   }
 };
-
 // display ALL products function
 const getAllProducts = async (req, res) => {
   try {
@@ -65,6 +64,12 @@ const updateProduct = async (req, res) => {
     const product = await Productmodel.findById(id);
 
     if (!product) {
+
+      res.status(404).json({ message: "product not found" });
+    } else {
+      await Productmodel.findByIdAndUpdate({ _id: id }, products);
+      res.status(201).json({ message: "product updated" });
+
       return res.status(404).json({ message: "Product not found" });
     }
 
@@ -77,17 +82,22 @@ const updateProduct = async (req, res) => {
     // السماح للسيلر لو هو صاحب المنتج
     if (!product.ownerId || product.ownerId.toString() !== userId.toString()) {
       return res.status(403).json({ message: "Not authorized to update this product" });
+
     }
 
     await Productmodel.findByIdAndUpdate(id, data, { new: true });
     return res.status(200).json({ message: "Product updated by seller" });
 
   } catch (err) {
+
+    return res.status(500)("cannot update product");
+
     console.error("Update error:", err);
     return res.status(500).json({
       message: "Cannot update product",
       error: err.message,
     });
+
   }
 };
 
