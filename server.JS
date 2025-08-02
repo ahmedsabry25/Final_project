@@ -1,5 +1,6 @@
 const { OpenAI } = require("openai");
-const Chat = require("../models/Chat");
+const Chat = require("./models/chat");
+require("dotenv").config();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,

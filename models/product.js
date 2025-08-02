@@ -35,9 +35,10 @@ const productSchema = mongoose.Schema({
     type: String,
     required: [true, "brand is required"],
   },
+
   ownerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "user"
   },
 });
-module.exports = mongoose.model("Product", productSchema);
+module.exports = mongoose.model("product", productSchema);

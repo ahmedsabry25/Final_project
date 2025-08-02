@@ -1,5 +1,6 @@
 const Productmodel = require("../models/product");
-//add new product
+
+// add new product
 const addProduct = async (req, res) => {
   const { title, brand, stock = 1, description, price, category } = req.body;
 
@@ -36,6 +37,7 @@ const addProduct = async (req, res) => {
     });
   }
 };
+
 // display ALL products function
 const getAllProducts = async (req, res) => {
   try {
@@ -45,15 +47,19 @@ const getAllProducts = async (req, res) => {
     return res.status(500).json({ message: "Failed to fetch products" });
   }
 };
+
 // display the product by _ID function
 const getProductById = async (req, res) => {
   const id = req.params.id;
   const product = await Productmodel.findOne({ _id: id });
   if (!product) {
     return res.status(404).json({ message: "Product not found" });
-  } else res.status(200).json(product);
+  } else {
+    res.status(200).json(product);
+  }
 };
-//update the peoduct by _ID function
+
+// update the product by _ID function
 const updateProduct = async (req, res) => {
   const id = req.params.id;
   const data = req.body;
@@ -64,23 +70,16 @@ const updateProduct = async (req, res) => {
     const product = await Productmodel.findById(id);
 
     if (!product) {
-<<<<<<< HEAD
       return res.status(404).json({ message: "Product not found" });
-=======
-      res.status(404).json({ message: "product not found" });
-    } else {
-      await Productmodel.findByIdAndUpdate({ _id: id }, products);
-      res.status(201).json({ message: "product updated" });
->>>>>>> karim-branch
     }
 
-
+    // If user is admin, allow update
     if (userRole === "admin") {
-      await Productmodel.findByIdAndUpdate(id, data, { new: true }); //new بيرجع اخر نسخة معدلة يعني بغد التحديث
+      await Productmodel.findByIdAndUpdate(id, data, { new: true });
       return res.status(200).json({ message: "Product updated by admin" });
     }
 
-    // السماح للسيلر لو هو صاحب المنتج
+    // If user is seller, only allow if he owns the product
     if (!product.ownerId || product.ownerId.toString() !== userId.toString()) {
       return res.status(403).json({ message: "Not authorized to update this product" });
     }
@@ -89,20 +88,15 @@ const updateProduct = async (req, res) => {
     return res.status(200).json({ message: "Product updated by seller" });
 
   } catch (err) {
-<<<<<<< HEAD
     console.error("Update error:", err);
     return res.status(500).json({
       message: "Cannot update product",
       error: err.message,
     });
-=======
-    return res.status(500)("cannot update product");
->>>>>>> karim-branch
   }
 };
 
-
-//delete the product by _ID function
+// delete the product by _ID function
 const deleteProduct = async (req, res) => {
   const id = req.params.id;
   const userId = req.user._id;
@@ -115,11 +109,13 @@ const deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // admin can delete any product
     if (userRole === "admin") {
       await Productmodel.findByIdAndDelete(id);
       return res.status(200).json({ message: "Product deleted by admin" });
     }
 
+    // seller can only delete his own product
     if (!product.ownerId || product.ownerId.toString() !== userId.toString()) {
       return res.status(403).json({ message: "Not authorized to delete this product" });
     }
@@ -141,8 +137,6 @@ const deleteProduct = async (req, res) => {
     });
   }
 };
-
-
 
 module.exports = {
   addProduct,

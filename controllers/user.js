@@ -125,6 +125,8 @@ const updateUser = async (req, res) => {
 
 // Get all users
 const getAllUser = async (req, res) => {
+  const Allusers = await usermodel.find();
+  res.status(200).json(Allusers);
   const users = await usermodel.find();
   res.status(200).json(users);
 };
@@ -132,13 +134,12 @@ const getAllUser = async (req, res) => {
 // Get user by ID
 const getUser = async (req, res) => {
   const id = req.params.id;
-  const user = await usermodel.findById(id);
-
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+  const User = await usermodel.findOne({ _id: id });
+  if (!User) {
+    return res.status(404).send({ message: "user not found" });
+  } else {
+    res.status(200).json(User);
   }
-
-  res.status(200).json(user);
 };
 
 // Forget password

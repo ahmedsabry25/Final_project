@@ -17,12 +17,16 @@ mongoose
   .catch((err) => {
     console.error("Error connecting to MongoDB:", err);
   });
-  
 //import routes
-const chatRoutes =require("./routers/chat")
 const userRoutes = require("./routers/user");
 const productRoutes = require("./routers/product");
+const wishlistRoutes = require("./routers/wishlist");
+const shippingRoutes = require("./routers/shipping");
+const chatRoutes =require("./routers/chat")
+
 //API path
+app.use("/shipping", shippingRoutes);
+app.use("/wishlist", wishlistRoutes);
 app.use("/user", userRoutes);
 app.use("/product", productRoutes);
 app.use("/chat", chatRoutes);
